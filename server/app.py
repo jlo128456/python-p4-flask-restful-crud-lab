@@ -43,9 +43,12 @@ api.add_resource(Plants, '/plants')
 
 class PlantByID(Resource):
 
+    class PlantByID(Resource):
     def get(self, id):
-        plant = Plant.query.filter_by(id=id).first().to_dict()
-        return make_response(jsonify(plant), 200)
+        plant = Plant.query.get(id)
+        if not plant:
+            return make_response({"error": "Plant not found"}, 404)
+        return make_response(plant.to_dict(), 200)
 
     def patch(self, id):
         plant = Plant.query.get(id)
@@ -53,14 +56,12 @@ class PlantByID(Resource):
             return make_response({"error": "Plant not found"}, 404)
 
         data = request.get_json()
-        
-        # Strong parameters: only allow specific fields to be updated
         for field in ['name', 'image', 'price', 'is_in_stock']:
             if field in data:
                 setattr(plant, field, data[field])
 
         db.session.commit()
-        return make_response(plant.to_dict(), 200) 
+        return make_response(plant.to_dict(), 200)
 
     def delete(self, id):
         plant = Plant.query.get(id)
@@ -69,8 +70,7 @@ class PlantByID(Resource):
 
         db.session.delete(plant)
         db.session.commit()
-        return make_response({}, 204)       
-
+        return make_response({}, 204)
 
 api.add_resource(PlantByID, '/plants/<int:id>')
 
